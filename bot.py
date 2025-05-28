@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from config import COMMAND_PREFIX, DISCORD_TOKEN, GUILD_ID
 from supabase_setup import supabase
+from services.scheduled_plan import MealPlannerLogic
 
 
 class MealManBot(commands.Bot):
@@ -19,6 +20,14 @@ class MealManBot(commands.Bot):
         await self.load_extension('cogs.recipe')
         await self.tree.sync(guild=discord.Object(id=GUILD_ID))
         await self.tree.sync()
+
+        self.loop.create_task(self.meal_planner_background())
+
+    async def meal_planner_background(self):
+        await self.wait_until_ready()
+        planner = MealPlannerLogic(bot=self)
+
+        await planner.run_meal_plan_for_all_groups()
 
 
 async def main():
