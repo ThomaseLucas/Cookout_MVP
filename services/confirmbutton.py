@@ -1,15 +1,13 @@
 import discord
 from services.calendar_service import CalendarService
 
-class ConfirmButtonView(discord.ui.View):
-    def __init__(self, recipe_id, group):
-        super().__init__()
-        self.recipe_id = recipe_id
+class ConfirmButtonView(discord.ui.Button):
+    def __init__(self, group):
+        super().__init__(label='Confirm', style=discord.ButtonStyle.primary)
         self.group = group
         self.mealplanner = CalendarService()
 
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.primary)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def callback(self, interaction: discord.Interaction):
         '''
         This function will confirm the mealplan for the user, meaning that it will go through these steps:
         1. All of the recipes are added to a database table
@@ -19,3 +17,7 @@ class ConfirmButtonView(discord.ui.View):
 
         To accomplish this, this function will be calling many other functions, especially within the CalendarService() object. 
         '''
+
+        
+
+        await interaction.response.send_message('You confirmed the meal plan!')

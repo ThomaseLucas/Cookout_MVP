@@ -1,15 +1,11 @@
 import discord
 # from services.calendar_service import CalendarService
 
-class NewListView(discord.ui.View):
+class NewListView(discord.ui.Button):
     def __init__(self, group, meal_plan_object):
-        super().__init__()
+        super().__init__(label='New Plan', style=discord.ButtonStyle.primary)
         self.group = group
         self.planner = meal_plan_object
 
-    @discord.ui.button(label='New List', style=discord.ButtonStyle.primary)
-    async def reroll(self, interaction: discord.Interaction, button: discord.ui.Button):
-        print(self.recipe_id, self.group)
-        new_recipes =  self.planner.run_meal_plan_for_all_groups(self.group)
-        print(new_recipes)
-        # await interaction.response.edit_message(content=f'New Recipe: {new_recipe[0]['title']}')
+    async def callback(self, interaction: discord.Interaction):
+        await self.planner.run_meal_plan_for_all_groups(self.group)

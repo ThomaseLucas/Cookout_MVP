@@ -9,7 +9,11 @@ from services.scheduled_plan import MealPlanner
 class MealManBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default() #sets the intents of the bot to default
-        intents.message_content = True 
+        intents.message_content = True
+        intents.guilds = True
+        intents.message_content = True
+        intents.members = True
+        
         super().__init__(command_prefix=COMMAND_PREFIX, intents=intents) #inherits from the Bot class, and adds those two parameters.
 
     async def setup_hook(self):

@@ -130,11 +130,11 @@ class CalendarService():
                 if times_made == 10:
                     return 'Not enough recipes in the database! Please add more.' #makes sure no infinite loop is possible, you shouldn't be eating 1 recipe 10 times in a month.
                 
-                total_recipes = supabase.table('recipes').select('id, title, image', count="exact").eq('group', group).eq('times_made', times_made).execute() #grabs all recipes where they've been made equal to the times_made variable
+                total_recipes = supabase.table('recipes').select('id, title, image, description', count="exact").eq('group', group).eq('times_made', times_made).execute() #grabs all recipes where they've been made equal to the times_made variable
 
-                print(total_recipes)
-                print()
-                print(total_recipes.count)
+                # print(total_recipes)
+                # print()
+                # print(total_recipes.count)
 
                 if total_recipes.count == 0: #checks if the count is 0, if so, increment the times_made 1 more
                     times_made += 1
@@ -170,9 +170,22 @@ class CalendarService():
     def create_number_of_events(self, amount):
         pass
     def reroll_recipe(self, recipe_id, group):
-        print(f'Recipe rerolled! {recipe_id} {group}')
-        response = supabase.table('recipes').select('*').eq('group', group).eq('id', int(recipe_id)).execute()
-        return response.data
+        times_made_counter = 0
+
+        while True:
+            print(f'Recipe rerolled! {recipe_id} {group}')
+            response = supabase.table('recipes').select('id, title, description, image').eq('group', group).eq('times_made', times_made_counter).neq('id', int(recipe_id)).execute()
+            
+            if response.data:
+                break
+            else:
+                times_made_counter += 1
+
+        length = len(response.data)
+
+        random_index = random.randint(0, length)
+        print(response.data[random_index])
+        return response.data[random_index]
         
     def reroll_all_week(self):
         pass
