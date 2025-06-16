@@ -82,7 +82,7 @@ class MealPlanner():
     
 
     async def get_or_create_group_channel(self, guild, group, user_ids):
-        print(user_ids)
+        # print(user_ids)
         channel_name = f'meal-plan-group-{group}'
         existing = discord.utils.get(guild.text_channels, name=channel_name)
 
@@ -98,7 +98,7 @@ class MealPlanner():
             print(f'adding member {m.name}: {m.id}')
             if str(m.id) in user_ids:
                 overwrites[m]= discord.PermissionOverwrite(read_messages=True, send_messages=True)
-        print(overwrites)
+        # print(overwrites)
         return await guild.create_text_channel(name=channel_name, overwrites=overwrites)
 
 
@@ -108,22 +108,22 @@ class MealPlanner():
             recipes = group_plans[group]
             changing_recipes = {}
 
-            for recipe in recipes:
-                changing_recipes[recipe['title']] = recipe
+            for i, recipe in enumerate(recipes):
+                changing_recipes[i] = recipe
 
-            print(changing_recipes)
+            # print(changing_recipes)
 
             guild = self.bot.get_guild(int(GUILD_ID))
             if guild != None:
-                print(guild.members)
+                # print(guild.members)
                 channel = await self.get_or_create_group_channel(guild, group, user_ids)
             else:
                 print('Guild not found.')
 
-            view = discord.ui.View()
+            # view = discord.ui.View()
             await channel.purge(limit=100)
 
-            for i, recipe in enumerate(recipes, start=1):
+            for i, recipe in enumerate(recipes, start=0):
                 embed = discord.Embed(
                 title=recipe['title'],
                 description=recipe['description'],
@@ -132,8 +132,9 @@ class MealPlanner():
                 embed.set_image(url=recipe['image'])
 
                 view = discord.ui.View()
-                view.add_item(RerollButtonView(recipe_id=recipe['id'], group=group, recipe_title=recipe['title'], changing_recipes=changing_recipes)) 
+                final_recipes = view.add_item(RerollButtonView(recipe_id=recipe['id'], group=group, recipe_title=recipe['title'], changing_recipes=changing_recipes, index=i)) 
                 print(f'{i}. **{recipe['title']}')
+                print(final_recipes)
 
                 try:
                     await channel.send(embed=embed, view=view)
@@ -145,7 +146,7 @@ class MealPlanner():
 
             final_view = discord.ui.View()
 
-            final_view.add_item(ConfirmButtonView(group))
+            final_view.add_item(ConfirmButtonView(group, changing_recipes))
             final_view.add_item(NewListView(group, self)) #TODO make logic to be able to not repeat the same meals when using the new_list button
 
             await channel.send(view=final_view)

@@ -80,6 +80,7 @@ class AddRecipeGroup(app_commands.Group):
         '''
         try:
             scraper = scrape_me(url)
+            # print(f'\n\n{scraper}\n\n')
 
             #retrieves data from website using recipe_scrapers library
             return {
