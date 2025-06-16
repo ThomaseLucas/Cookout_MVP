@@ -183,7 +183,7 @@ class CalendarService():
 
         length = len(response.data)
 
-        random_index = random.randint(0, length)
+        random_index = random.randint(0, length - 1)
         print(response.data[random_index])
         return response.data[random_index]
         

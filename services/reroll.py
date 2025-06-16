@@ -2,11 +2,12 @@ import discord
 from services.calendar_service import CalendarService
 
 class RerollButtonView(discord.ui.Button):
-    def __init__(self, recipe_id, group, recipe_title, changing_recipes):
+    def __init__(self, recipe_id, group, recipe_title, changing_recipes, index):
         self.recipe_title = recipe_title
         super().__init__(label=f'Reroll - {self.recipe_title}', style=discord.ButtonStyle.primary)
         self.recipe_id = recipe_id  
         self.group = group
+        self.index = index
         self.mealplanner = CalendarService()
         self.changing_recipes = changing_recipes
         
@@ -16,17 +17,18 @@ class RerollButtonView(discord.ui.Button):
 
         message_id = interaction.message.id
         try:
-            # while True:
-            #     new_recipe = self.mealplanner.reroll_recipe(self.recipe_id, self.group)
-            #     if new_recipe['title'] in self.changing_recipes:
-            #         new_recipe = self.mealplanner.reroll_recipe(self.recipe_id, self.group)
-            #         print('\n\nThis recipe is in the meal plan already!\n\n')
-            #     else:
-            #         self.changing_recipes.pop(self.recipe_title)
-            #         self.changing_recipes[new_recipe['title']] = new_recipe
-            #         break
+            while True:
+                new_recipe = self.mealplanner.reroll_recipe(self.recipe_id, self.group)
+                if new_recipe['title'] in [r['title'] for r in self.changing_recipes.values()]:
+                    print('\n\nThis recipe is in the meal plan already!\n\n')
+                    continue
+                else:
+                    self.changing_recipes[self.index] = new_recipe
+                    # print(self.changing_recipes)
+                    print('\n\nnew recipe found!\n\n')
+                    break
 
-            new_recipe = self.mealplanner.reroll_recipe(self.recipe_id, self.group)
+            # new_recipe = self.mealplanner.reroll_recipe(self.recipe_id, self.group)
             
             embed = discord.Embed(
                         title=new_recipe['title'],
@@ -40,6 +42,7 @@ class RerollButtonView(discord.ui.Button):
             print(f'could not find new recipe: {e}')
         
         await interaction.message.edit(embed=embed, view=self.view)
+
         
         # await interaction.response.send_message(
         #     f'Group {self.group} was just rerolled.'

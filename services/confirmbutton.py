@@ -2,9 +2,10 @@ import discord
 from services.calendar_service import CalendarService
 
 class ConfirmButtonView(discord.ui.Button):
-    def __init__(self, group):
+    def __init__(self, group, meals):
         super().__init__(label='Confirm', style=discord.ButtonStyle.primary)
         self.group = group
+        self.meals = meals
         self.mealplanner = CalendarService()
 
     async def callback(self, interaction: discord.Interaction):
@@ -18,6 +19,6 @@ class ConfirmButtonView(discord.ui.Button):
         To accomplish this, this function will be calling many other functions, especially within the CalendarService() object. 
         '''
 
-        
+        print(f'\n\n{self.meals}\n\n')
 
-        await interaction.response.send_message('You confirmed the meal plan!')
+        await interaction.response.send_message(f'This is your meal plan for the week: \n{self.meals[0]}')
