@@ -115,7 +115,7 @@ class CalendarService():
         calendar_id = self.get_calendar_id(group)
         created_event = self.gcs.events().insert(calendarId=calendar_id, body=event).execute()
 
-        print(f'Event Created', created_event.get('htmlLink'))
+        # print(f'Event Created', created_event.get('htmlLink'))
 
     async def select_random_recipes(self, days_needed, group, meal_plan_lock, reroll_recipe=None):
         '''This method selects a number of random recipes where they haven't been used this month yet, where they match the group number. This will return a list of dictionaries of the  recipe id and title'''
@@ -166,7 +166,7 @@ class CalendarService():
                 
             
     def share_with_user(self, calendar_id, email_to_share):
-        print(f'[SHARING] {calendar_id} with {email_to_share}')
+        # print(f'[SHARING] {calendar_id} with {email_to_share}')
 
         try:
             self.gcs.acl().insert(calendarId=calendar_id, 
@@ -178,8 +178,8 @@ class CalendarService():
                                     'role': 'reader'
                                 }).execute()
             
-            print(f'Successfully shared with {email_to_share}\n')
-            print(f"https://calendar.google.com/calendar/u/0/r?cid={calendar_id}")
+            # print(f'Successfully shared with {email_to_share}\n')
+            # print(f"https://calendar.google.com/calendar/u/0/r?cid={calendar_id}")
             return f"https://calendar.google.com/calendar/u/0/r?cid={calendar_id}"
 
         except Exception as e:

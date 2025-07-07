@@ -24,7 +24,7 @@ class ConfirmButtonView(discord.ui.Button):
         '''
 
         await interaction.response.defer()
-        print(f'\n\n{self.meals}\n\n')
+        # print(f'\n\n{self.meals}\n\n')
 
         if not self.mealplanner.check_if_calendar_exists(self.group):
             self.mealplanner.create_new_calendar(self.group, None)
@@ -34,7 +34,7 @@ class ConfirmButtonView(discord.ui.Button):
         shared_calendar = self.map_data_to_event()
 
         await interaction.followup.send(f'Here is your calendar! \n{shared_calendar}\nClick this link to share my calendar with your own.')
-        
+
     def find_dates(self):
         today = datetime.date.today()
         days_ahead = (0 - today.weekday()) % 7  # 0 is Monday
