@@ -20,13 +20,14 @@ class CalendarService():
         '''This gets the id of the calendar that is attached to the group in the database'''
 
         get_id_query = supabase.table('groups').select('google_calendar_id').eq('group', group) 
-        return get_id_query.execute()
+        result = get_id_query.execute()
+        return result.data[0]['google_calendar_id']
         
     def check_if_calendar_exists(self, group, name=None):
         '''This checks if there is a calendar that belongs to a group'''
         if name == None:
             calendar_group_id = self.get_calendar_id(group)
-            if not calendar_group_id.data:
+            if calendar_group_id is None:
                 self.create_new_calendar(group, None)
                 return False
             else:
@@ -35,7 +36,7 @@ class CalendarService():
         else:
             calendar_group_id = self.get_calendar_id(group)
             
-            if not calendar_group_id.data:
+            if calendar_group_id is None:
                 self.create_new_calendar(group, name)
                 return False
             else:
@@ -50,38 +51,40 @@ class CalendarService():
 
         if name == None:
             calendar = {
-                'summary': f'{group}',
-                'timeZone': 'America'
+                'summary': f'Group: {group}',
+                'timeZone': 'America/Denver'
             }
 
             created_calendar = self.gcs.calendars().insert(body=calendar).execute()
             calendar_id = created_calendar['id'] 
             print(calendar_id)
 
-            self.gcs.acl().insert(calendar_id=calendar_id, body=self.sharing_rule).execute()
+            self.gcs.acl().insert(calendarId=calendar_id, body=self.sharing_rule).execute()
 
-            supabase.table('groups') \
+            result = supabase.table('groups') \
             .update({'google_calendar_id': calendar_id}) \
-            .eq('group', group) \
+            .eq('group', int(group)) \
             .execute()
+            # print(result.data)
 
         else:
             calendar = {
-                'summary': f'{name}',
-                'timeZone': 'America'
+                'summary': f'Group: {group}',
+                'timeZone': 'America/Denver'
             }
 
             created_calendar = self.gcs.calendars().insert(body=calendar).execute()
             calendar_id = created_calendar['id'] 
             print(calendar_id)
 
-            self.gcs.acl().insert(calendar_id=calendar_id, body=self.sharing_rule).execute()
+            self.gcs.acl().insert(calendarId=calendar_id, body=self.sharing_rule).execute()
 
-            supabase.table('groups') \
+            result = supabase.table('groups') \
             .update({'google_calendar_id': calendar_id}) \
-            .eq('group', group) \
-            .eq('name', name) \
+            .eq('group', int(group)) \
             .execute()
+            # print(result.data, result.count)
+
         
     def create_event(self, group, title, description, ingredients, instructions, yeilds, start_date, end_date, image=None, ):
         '''This function simply creates an event on a calendar, in the context of a recipe. These args will be random from the database, but once they get here, we just make an event with this information'''
@@ -100,17 +103,17 @@ class CalendarService():
             {yeilds}
             ''',
             'start': {
-                'date': start_date,
-                'timeZone': 'America/Chicago'
+                'date': start_date.isoformat(),
+                'timeZone': 'America/Denver'
             },
             'end': {
-                'date': end_date,
-                'timeZone': 'America/Chicago'
+                'date': end_date.isoformat(),
+                'timeZone': 'America/Denver'
             }
         }   
         
         calendar_id = self.get_calendar_id(group)
-        created_event = self.gcs.events().insert(calender_id=calendar_id, body=event).execute()
+        created_event = self.gcs.events().insert(calendarId=calendar_id, body=event).execute()
 
         print(f'Event Created', created_event.get('htmlLink'))
 
@@ -130,7 +133,7 @@ class CalendarService():
                 if times_made == 10:
                     return 'Not enough recipes in the database! Please add more.' #makes sure no infinite loop is possible, you shouldn't be eating 1 recipe 10 times in a month.
                 
-                total_recipes = supabase.table('recipes').select('id, title, image, description', count="exact").eq('group', group).eq('times_made', times_made).execute() #grabs all recipes where they've been made equal to the times_made variable
+                total_recipes = supabase.table('recipes').select('id, title, description, image, ingredients, instructions, total_time, yields', count="exact").eq('group', group).eq('times_made', times_made).execute() #grabs all recipes where they've been made equal to the times_made variable
 
                 # print(total_recipes)
                 # print()
@@ -162,8 +165,25 @@ class CalendarService():
             return final_recipes
                 
             
-    def get_random_recipe(self, group):
-        pass
+    def share_with_user(self, calendar_id, email_to_share):
+        print(f'[SHARING] {calendar_id} with {email_to_share}')
+
+        try:
+            self.gcs.acl().insert(calendarId=calendar_id, 
+                                body={
+                                    'scope':{
+                                        'type':'user',
+                                        'value': 'thomaselucas2020@gmail.com'
+                                    },
+                                    'role': 'reader'
+                                }).execute()
+            
+            print(f'Successfully shared with {email_to_share}')
+            print(f"https://calendar.google.com/calendar/u/0/r?cid={calendar_id}")
+
+        except Exception as e:
+            print(f'An error occured: {e}')
+
             
 
     
@@ -174,7 +194,7 @@ class CalendarService():
 
         while True:
             print(f'Recipe rerolled! {recipe_id} {group}')
-            response = supabase.table('recipes').select('id, title, description, image').eq('group', group).eq('times_made', times_made_counter).neq('id', int(recipe_id)).execute()
+            response = supabase.table('recipes').select('id, title, description, image, ingredients, instructions, total_time, yields').eq('group', group).eq('times_made', times_made_counter).neq('id', int(recipe_id)).execute()
             
             if response.data:
                 break

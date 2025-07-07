@@ -1,12 +1,16 @@
 import discord
 from services.calendar_service import CalendarService
+import datetime
 
 class ConfirmButtonView(discord.ui.Button):
     def __init__(self, group, meals):
         super().__init__(label='Confirm', style=discord.ButtonStyle.primary)
         self.group = group
         self.meals = meals
-        self.mealplanner = CalendarService()
+        self.mealplanner:CalendarService = CalendarService()
+        self.dates = []
+        self.events = []
+        self.cal_id = None
 
     async def callback(self, interaction: discord.Interaction):
         '''
@@ -21,4 +25,26 @@ class ConfirmButtonView(discord.ui.Button):
 
         print(f'\n\n{self.meals}\n\n')
 
-        await interaction.response.send_message(f'This is your meal plan for the week: \n{self.meals[0]}')
+        if not self.mealplanner.check_if_calendar_exists(self.group):
+            self.mealplanner.create_new_calendar(self.group, None)
+
+        self.cal_id = self.mealplanner.get_calendar_id(self.group)
+        self.find_dates()
+        self.map_data_to_event()
+
+        await interaction.response.send_message(f'Your mealplan has been added to a calendar!').defer()
+
+    def find_dates(self):
+        today = datetime.date.today()
+        days_ahead = (0 - today.weekday()) % 7  # 0 is Monday
+        next_monday = today + datetime.timedelta(days=days_ahead)
+        self.dates = [next_monday + datetime.timedelta(days=i) for i in range(8)]
+
+    def map_data_to_event(self):
+
+        for i in range(len(self.dates) - 1):
+            self.mealplanner.create_event(self.group, self.meals[i]['title'], self.meals[i]['description'], self.meals[i]['ingredients'], self.meals[i]['instructions'], self.meals[i]['yields'], self.dates[i], self.dates[i + 1])
+
+        self.mealplanner.share_with_user(self.cal_id, 'thomaselucas2020@gmail.com')
+
+        
