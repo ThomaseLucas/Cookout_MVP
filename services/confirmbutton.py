@@ -23,6 +23,7 @@ class ConfirmButtonView(discord.ui.Button):
         To accomplish this, this function will be calling many other functions, especially within the CalendarService() object. 
         '''
 
+        await interaction.response.defer()
         print(f'\n\n{self.meals}\n\n')
 
         if not self.mealplanner.check_if_calendar_exists(self.group):
@@ -30,10 +31,10 @@ class ConfirmButtonView(discord.ui.Button):
 
         self.cal_id = self.mealplanner.get_calendar_id(self.group)
         self.find_dates()
-        self.map_data_to_event()
+        shared_calendar = self.map_data_to_event()
 
-        await interaction.response.send_message(f'Your mealplan has been added to a calendar!').defer()
-
+        await interaction.followup.send(f'Here is your calendar! \n{shared_calendar}\nClick this link to share my calendar with your own.')
+        
     def find_dates(self):
         today = datetime.date.today()
         days_ahead = (0 - today.weekday()) % 7  # 0 is Monday
@@ -45,6 +46,6 @@ class ConfirmButtonView(discord.ui.Button):
         for i in range(len(self.dates) - 1):
             self.mealplanner.create_event(self.group, self.meals[i]['title'], self.meals[i]['description'], self.meals[i]['ingredients'], self.meals[i]['instructions'], self.meals[i]['yields'], self.dates[i], self.dates[i + 1])
 
-        self.mealplanner.share_with_user(self.cal_id, 'thomaselucas2020@gmail.com')
+        return self.mealplanner.share_with_user(self.cal_id, 'thomaselucas2020@gmail.com')
 
         

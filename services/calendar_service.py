@@ -178,8 +178,9 @@ class CalendarService():
                                     'role': 'reader'
                                 }).execute()
             
-            print(f'Successfully shared with {email_to_share}')
+            print(f'Successfully shared with {email_to_share}\n')
             print(f"https://calendar.google.com/calendar/u/0/r?cid={calendar_id}")
+            return f"https://calendar.google.com/calendar/u/0/r?cid={calendar_id}"
 
         except Exception as e:
             print(f'An error occured: {e}')
