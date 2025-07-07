@@ -7,7 +7,7 @@ from services.newlistbutton import NewListView
 from services.confirmbutton import ConfirmButtonView
 import discord
 from config import GUILD_ID 
-
+import threading
 
 
 class MealPlanner():
@@ -18,12 +18,14 @@ class MealPlanner():
         
 
     def check_for_expired_date(self, data):
+        print(data)
         if data['google_calendar_id'] == None:
             calendar_exists = self.calendar_object.check_if_calendar_exists(data['group'], data['name'] if data.get('name') else None)
 
             if calendar_exists:
                 pass
             else:
+                print(f'creating new calendar for group {data['group']}')
                 self.calendar_object.create_new_calendar(data['group'], data['name'] if data.get('name') else None)
 
         last_planned_at_str = data['last_planned_at']
@@ -154,6 +156,9 @@ class MealPlanner():
 
 
     async def run_meal_plan_for_all_groups(self, group=None):
+
+        print("[DEBUG] Starting run_meal_plan_for_all_groups")
+
         if not group:
             group_query = supabase.table('groups').select('*').execute() #This query gets the group numbers which haven't had a meal plan made in 7 days. 
             groups_to_plan = [self.check_for_expired_date(data) for data in group_query.data if self.check_for_expired_date(data)]
